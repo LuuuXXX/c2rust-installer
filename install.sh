@@ -20,7 +20,7 @@ show_help() {
     cat << EOF
 Usage: ${0} [OPTIONS]
 
-Install all c2rust-* Rust projects and additional components from the script directory.
+Install all c2rust* Rust projects and additional components from the script directory.
 
 OPTIONS:
     --prefix=PATH       Specify installation prefix (default: ${DEFAULT_PREFIX})
@@ -38,7 +38,7 @@ EXAMPLES:
 
 DESCRIPTION:
     This script automatically discovers and installs all Rust projects in the
-    script directory that start with 'c2rust-'. Each project must contain a
+    script directory that start with 'c2rust'. Each project must contain a
     Cargo.toml file.
 
     The binaries will be installed to <prefix>/bin
@@ -102,14 +102,14 @@ parse_args() {
     fi
 }
 
-# Find all c2rust-* projects
+# Find all c2rust* projects
 find_projects() {
     local projects=()
     
     # Enable nullglob to handle the case where no matches are found
     shopt -s nullglob
     
-    for dir in "${SCRIPT_DIR}"/c2rust-*; do
+    for dir in "${SCRIPT_DIR}"/c2rust*; do
         if [[ -d "$dir" ]]; then
             if [[ -f "$dir/Cargo.toml" ]]; then
                 projects+=("$dir")
@@ -365,8 +365,8 @@ main() {
         exit 1
     fi
     
-    # Find all c2rust-* projects
-    echo "Searching for c2rust-* projects..."
+    # Find all c2rust* projects
+    echo "Searching for c2rust* projects..."
     local -a projects=()
     while IFS= read -r project; do
         projects+=("$project")
@@ -377,8 +377,8 @@ main() {
     local failed=()
     
     if [[ ${#projects[@]} -eq 0 ]]; then
-        echo -e "${YELLOW}No c2rust-* projects found in ${SCRIPT_DIR}${NC}"
-        echo "Expected to find directories starting with 'c2rust-' containing Cargo.toml files"
+        echo -e "${YELLOW}No c2rust* projects found in ${SCRIPT_DIR}${NC}"
+        echo "Expected to find directories starting with 'c2rust' containing Cargo.toml files"
         echo ""
     else
         echo -e "${GREEN}Found ${#projects[@]} project(s):${NC}"
