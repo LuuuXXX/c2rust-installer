@@ -105,7 +105,7 @@ Successfully installed (2):
 Installation prefix: /home/user/.c2rust
   Binaries:        /home/user/.c2rust/bin
 
-All installations completed successfully!
+所有安装已成功完成！
 ```
 
 ## 故障排除

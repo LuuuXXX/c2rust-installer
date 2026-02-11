@@ -68,13 +68,11 @@ parse_args() {
                     echo -e "${RED}Error: --prefix= requires a non-empty path argument${NC}" >&2
                     exit 1
                 fi
-                CUSTOM_PREFIX_USED=true
                 shift
                 ;;
             --prefix)
                 if [[ -n "$2" ]] && [[ "$2" != --* ]]; then
                     PREFIX="$2"
-                    CUSTOM_PREFIX_USED=true
                     shift 2
                 else
                     echo -e "${RED}Error: --prefix requires a path argument${NC}" >&2
@@ -96,6 +94,11 @@ parse_args() {
     # Use default prefix if not specified
     if [[ -z "$PREFIX" ]]; then
         PREFIX="$DEFAULT_PREFIX"
+    fi
+    
+    # Set CUSTOM_PREFIX_USED only if the prefix differs from default
+    if [[ "$PREFIX" != "$DEFAULT_PREFIX" ]]; then
+        CUSTOM_PREFIX_USED=true
     fi
 }
 
