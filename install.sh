@@ -460,8 +460,8 @@ main() {
     # Check if PREFIX/bin is in PATH
     if [[ ":$PATH:" != *":${PREFIX}/bin:"* ]]; then
         echo ""
-        echo -e "${YELLOW}Note: ${PREFIX}/bin is not in your PATH${NC}"
-        echo "Add the following line to your shell configuration file:"
+        echo -e "${YELLOW}注意：${PREFIX}/bin 不在您的 PATH 中${NC}"
+        echo "请将以下内容添加到您的 shell 配置文件中："
         echo "  export PATH=\"${PREFIX}/bin:\$PATH\""
     fi
     
@@ -469,27 +469,27 @@ main() {
     if [[ "$CUSTOM_PREFIX_USED" == "true" ]]; then
         echo ""
         echo -e "${YELLOW}=========================================="
-        echo "Environment Variable Configuration"
+        echo "环境变量配置"
         echo -e "==========================================${NC}"
         echo ""
-        echo -e "Please set the ${GREEN}C2RUST_HOME${NC} environment variable to your installation prefix:"
+        echo -e "请设置 ${GREEN}C2RUST_HOME${NC} 环境变量为您的安装前缀："
         echo ""
         echo -e "  ${GREEN}export C2RUST_HOME=\"${PREFIX}\"${NC}"
         echo ""
-        echo "Add this to your shell configuration file to make it permanent:"
+        echo "将其添加到您的 shell 配置文件以使其永久生效："
         echo ""
-        echo "  For Bash users (~/.bashrc):"
+        echo "  Bash 用户 (~/.bashrc)："
         echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.bashrc${NC}"
         echo -e "    ${BLUE}source ~/.bashrc${NC}"
         echo ""
-        echo "  For Zsh users (~/.zshrc):"
+        echo "  Zsh 用户 (~/.zshrc)："
         echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.zshrc${NC}"
         echo -e "    ${BLUE}source ~/.zshrc${NC}"
         echo ""
     fi
     
     echo ""
-    echo -e "${GREEN}All installations completed successfully!${NC}"
+    echo -e "${GREEN}所有安装已成功完成！${NC}"
 }
 
 # Run main function with all arguments
