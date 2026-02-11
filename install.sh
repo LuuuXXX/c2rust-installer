@@ -155,7 +155,7 @@ main() {
     
     # Find all c2rust-* projects
     echo "Searching for c2rust-* projects..."
-    projects=()
+    local -a projects=()
     while IFS= read -r project; do
         projects+=("$project")
     done < <(find_projects)

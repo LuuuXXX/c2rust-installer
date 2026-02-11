@@ -58,7 +58,7 @@ c2rust 相关 Rust 项目的自动化安装脚本。
 
 1. 在安装脚本所在的目录中搜索所有匹配 `c2rust-*` 的子目录
 2. 验证每个目录是否包含 `Cargo.toml` 文件
-3. 使用 `cargo install --path . --root <prefix>` 安装每个项目
+3. 对每个项目路径执行 `cargo install --path "<project_path>" --root <prefix>` 进行安装
 4. 报告每个项目的安装成功/失败状态
 5. 显示所有安装的摘要
 
