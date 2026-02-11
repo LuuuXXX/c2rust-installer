@@ -153,7 +153,8 @@ ensure_directories() {
     local dirs_created=()
     local dirs_existed=()
     
-    for dir in "lib" "python"; do
+    # Create all required directories
+    for dir in "bin" "lib" "python"; do
         local dir_path="${PREFIX}/${dir}"
         if [[ ! -d "$dir_path" ]]; then
             if mkdir -p "$dir_path"; then
@@ -167,17 +168,6 @@ ensure_directories() {
             dirs_existed+=("$dir")
         fi
     done
-    
-    # bin directory should already exist from cargo install, but check anyway
-    if [[ ! -d "${PREFIX}/bin" ]]; then
-        if mkdir -p "${PREFIX}/bin"; then
-            dirs_created+=("bin")
-            echo -e "${GREEN}✓ Created bin directory${NC}"
-        else
-            echo -e "${RED}Error: Failed to create bin directory${NC}" >&2
-            return 1
-        fi
-    fi
     
     if [[ ${#dirs_created[@]} -eq 0 ]]; then
         echo -e "${GREEN}✓ All required directories already exist${NC}"
@@ -334,11 +324,13 @@ install_additional_components() {
         echo ""
     fi
     
-    # Return arrays via global variables for summary
+    # Export arrays to global scope for summary display in main()
+    # Note: This is a workaround since Bash functions can't return arrays directly
     ADDITIONAL_SUCCEEDED=("${additional_succeeded[@]}")
     ADDITIONAL_FAILED=("${additional_failed[@]}")
     
-    # Return failure if any component failed
+    # Return failure status if any component failed
+    # The calling code uses '|| true' to prevent early exit, allowing summary to be displayed
     if [[ ${#additional_failed[@]} -gt 0 ]]; then
         return 1
     fi
@@ -398,9 +390,12 @@ main() {
     fi
     
     # Install additional components
+    # Note: Arrays are populated via global variables (ADDITIONAL_SUCCEEDED, ADDITIONAL_FAILED)
+    # because Bash functions cannot return arrays directly
     local -a ADDITIONAL_SUCCEEDED=()
     local -a ADDITIONAL_FAILED=()
-    install_additional_components || true  # Don't exit on failure, we handle it in summary
+    # Using '|| true' to prevent early exit due to 'set -e', allowing summary to be displayed
+    install_additional_components || true
     
     # Summary
     echo "=========================================="
