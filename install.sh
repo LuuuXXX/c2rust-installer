@@ -23,7 +23,7 @@ Install all c2rust-* Rust projects from the script directory.
 
 OPTIONS:
     --prefix=PATH       Specify installation prefix (default: ${DEFAULT_PREFIX})
-    --help              Display this help message
+    --help, -h          Display this help message
 
 EXAMPLES:
     # Install with default prefix
@@ -38,7 +38,7 @@ EXAMPLES:
 DESCRIPTION:
     This script automatically discovers and installs all Rust projects in the
     script directory that start with 'c2rust-'. Each project must contain a
-    valid Cargo.toml file.
+    Cargo.toml file.
 
     The binaries will be installed to <prefix>/bin
 
@@ -51,6 +51,10 @@ parse_args() {
         case $1 in
             --prefix=*)
                 PREFIX="${1#*=}"
+                if [[ -z "$PREFIX" ]]; then
+                    echo -e "${RED}Error: --prefix= requires a non-empty path argument${NC}" >&2
+                    exit 1
+                fi
                 shift
                 ;;
             --prefix)

@@ -45,8 +45,8 @@ Display usage information:
 
 ## Features
 
-- **Automatic Discovery**: Finds all directories starting with `c2rust-` that contain valid Rust projects
-- **Validation**: Checks for `Cargo.toml` files to ensure directories are valid Rust projects
+- **Automatic Discovery**: Finds all directories starting with `c2rust-` that contain Rust projects
+- **Validation**: Checks for `Cargo.toml` files to ensure directories are Rust projects
 - **Custom Installation Path**: Support for `--prefix` option to specify installation directory
 - **Progress Reporting**: Shows clear progress information during installation
 - **Error Handling**: Provides detailed error messages and installation summary
@@ -114,7 +114,7 @@ All installations completed successfully!
 If the script reports no projects found, ensure:
 - Your directories start with `c2rust-`
 - Each directory contains a `Cargo.toml` file
-- You're running the script from the repository root
+- You're using the `install.sh` script from this repository (it discovers projects relative to its own location, not your current working directory)
 
 ### Installation failures
 
