@@ -19,7 +19,7 @@ show_help() {
     cat << EOF
 Usage: ${0} [OPTIONS]
 
-Install all c2rust-* Rust projects from the script directory.
+Install all c2rust-* Rust projects and additional components from the script directory.
 
 OPTIONS:
     --prefix=PATH       Specify installation prefix (default: ${DEFAULT_PREFIX})
@@ -41,6 +41,18 @@ DESCRIPTION:
     Cargo.toml file.
 
     The binaries will be installed to <prefix>/bin
+
+    Additionally, the script will process and install the following components
+    if they are present in the script directory:
+    
+    - c2rust-build-master: Builds and installs libhook.so to <prefix>/lib
+    - hybrid-build: Builds and installs libc2rust-hybrid-build.so to <prefix>/lib
+    - translate_and_fix: Copies the directory to <prefix>/python
+
+INSTALLATION STRUCTURE:
+    <prefix>/bin     - Binary executables from Rust projects
+    <prefix>/lib     - Shared libraries (.so files)
+    <prefix>/python  - Python modules and scripts
 
 EOF
 }
@@ -134,6 +146,205 @@ install_project() {
     return 1
 }
 
+# Ensure required directory structure exists
+ensure_directories() {
+    echo "Setting up directory structure..."
+    
+    local dirs_created=()
+    local dirs_existed=()
+    
+    for dir in "lib" "python"; do
+        local dir_path="${PREFIX}/${dir}"
+        if [[ ! -d "$dir_path" ]]; then
+            if mkdir -p "$dir_path"; then
+                dirs_created+=("$dir")
+                echo -e "${GREEN}✓ Created ${dir} directory${NC}"
+            else
+                echo -e "${RED}Error: Failed to create ${dir} directory${NC}" >&2
+                return 1
+            fi
+        else
+            dirs_existed+=("$dir")
+        fi
+    done
+    
+    # bin directory should already exist from cargo install, but check anyway
+    if [[ ! -d "${PREFIX}/bin" ]]; then
+        if mkdir -p "${PREFIX}/bin"; then
+            dirs_created+=("bin")
+            echo -e "${GREEN}✓ Created bin directory${NC}"
+        else
+            echo -e "${RED}Error: Failed to create bin directory${NC}" >&2
+            return 1
+        fi
+    fi
+    
+    if [[ ${#dirs_created[@]} -eq 0 ]]; then
+        echo -e "${GREEN}✓ All required directories already exist${NC}"
+    fi
+    
+    return 0
+}
+
+# Handle c2rust-build-master directory
+install_c2rust_build_master() {
+    local build_dir="${SCRIPT_DIR}/c2rust-build-master"
+    
+    if [[ ! -d "$build_dir" ]]; then
+        return 0  # Not an error, just not present
+    fi
+    
+    echo "Processing c2rust-build-master..."
+    
+    local hook_dir="${build_dir}/hook"
+    if [[ ! -d "$hook_dir" ]]; then
+        echo -e "${YELLOW}Warning: c2rust-build-master exists but hook/ directory not found${NC}" >&2
+        return 1
+    fi
+    
+    if [[ ! -f "${hook_dir}/build.sh" ]]; then
+        echo -e "${YELLOW}Warning: build.sh not found in ${hook_dir}${NC}" >&2
+        return 1
+    fi
+    
+    echo "Building hook library..."
+    
+    # Navigate to hook directory and run build.sh
+    if ! (cd "$hook_dir" && ./build.sh); then
+        echo -e "${RED}Error: Failed to build hook library${NC}" >&2
+        return 1
+    fi
+    
+    # Find and copy libhook.so
+    local libhook_path="${hook_dir}/libhook.so"
+    if [[ ! -f "$libhook_path" ]]; then
+        echo -e "${RED}Error: libhook.so not found after build${NC}" >&2
+        return 1
+    fi
+    
+    if cp "$libhook_path" "${PREFIX}/lib/"; then
+        echo -e "${GREEN}✓ Successfully built and installed libhook.so${NC}"
+        return 0
+    else
+        echo -e "${RED}Error: Failed to copy libhook.so${NC}" >&2
+        return 1
+    fi
+}
+
+# Handle hybrid-build directory
+install_hybrid_build() {
+    local hybrid_dir="${SCRIPT_DIR}/hybrid-build"
+    
+    if [[ ! -d "$hybrid_dir" ]]; then
+        return 0  # Not an error, just not present
+    fi
+    
+    echo "Processing hybrid-build..."
+    
+    echo "Building hybrid-build library..."
+    
+    # Navigate to hybrid-build directory and run make
+    if ! (cd "$hybrid_dir" && make); then
+        echo -e "${RED}Error: Failed to build hybrid-build library${NC}" >&2
+        return 1
+    fi
+    
+    # Find and copy libc2rust-hybrid-build.so
+    local lib_path="${hybrid_dir}/libc2rust-hybrid-build.so"
+    if [[ ! -f "$lib_path" ]]; then
+        echo -e "${RED}Error: libc2rust-hybrid-build.so not found after build${NC}" >&2
+        return 1
+    fi
+    
+    if cp "$lib_path" "${PREFIX}/lib/"; then
+        echo -e "${GREEN}✓ Successfully built and installed libc2rust-hybrid-build.so${NC}"
+        return 0
+    else
+        echo -e "${RED}Error: Failed to copy libc2rust-hybrid-build.so${NC}" >&2
+        return 1
+    fi
+}
+
+# Handle translate_and_fix directory
+install_translate_and_fix() {
+    local translate_dir="${SCRIPT_DIR}/translate_and_fix"
+    
+    if [[ ! -d "$translate_dir" ]]; then
+        return 0  # Not an error, just not present
+    fi
+    
+    echo "Processing translate_and_fix..."
+    
+    # Copy the entire directory to PREFIX/python/
+    if cp -r "$translate_dir" "${PREFIX}/python/"; then
+        echo -e "${GREEN}✓ Successfully copied translate_and_fix to python directory${NC}"
+        return 0
+    else
+        echo -e "${RED}Error: Failed to copy translate_and_fix directory${NC}" >&2
+        return 1
+    fi
+}
+
+# Install additional components
+install_additional_components() {
+    local additional_succeeded=()
+    local additional_failed=()
+    
+    echo ""
+    echo "=========================================="
+    echo "Additional Components Installation"
+    echo "=========================================="
+    echo ""
+    
+    # Ensure directory structure
+    if ensure_directories; then
+        additional_succeeded+=("Directory structure")
+    else
+        additional_failed+=("Directory structure")
+    fi
+    echo ""
+    
+    # Install c2rust-build-master if present
+    if [[ -d "${SCRIPT_DIR}/c2rust-build-master" ]]; then
+        if install_c2rust_build_master; then
+            additional_succeeded+=("c2rust-build-master")
+        else
+            additional_failed+=("c2rust-build-master")
+        fi
+        echo ""
+    fi
+    
+    # Install hybrid-build if present
+    if [[ -d "${SCRIPT_DIR}/hybrid-build" ]]; then
+        if install_hybrid_build; then
+            additional_succeeded+=("hybrid-build")
+        else
+            additional_failed+=("hybrid-build")
+        fi
+        echo ""
+    fi
+    
+    # Install translate_and_fix if present
+    if [[ -d "${SCRIPT_DIR}/translate_and_fix" ]]; then
+        if install_translate_and_fix; then
+            additional_succeeded+=("translate_and_fix")
+        else
+            additional_failed+=("translate_and_fix")
+        fi
+        echo ""
+    fi
+    
+    # Return arrays via global variables for summary
+    ADDITIONAL_SUCCEEDED=("${additional_succeeded[@]}")
+    ADDITIONAL_FAILED=("${additional_failed[@]}")
+    
+    # Return failure if any component failed
+    if [[ ${#additional_failed[@]} -gt 0 ]]; then
+        return 1
+    fi
+    return 0
+}
+
 # Main installation function
 main() {
     parse_args "$@"
@@ -160,30 +371,36 @@ main() {
         projects+=("$project")
     done < <(find_projects)
     
-    if [[ ${#projects[@]} -eq 0 ]]; then
-        echo -e "${YELLOW}No c2rust-* projects found in ${SCRIPT_DIR}${NC}"
-        echo "Expected to find directories starting with 'c2rust-' containing Cargo.toml files"
-        exit 0
-    fi
-    
-    echo -e "${GREEN}Found ${#projects[@]} project(s):${NC}"
-    for project in "${projects[@]}"; do
-        echo "  - $(basename "$project")"
-    done
-    echo ""
-    
     # Install each project
     local installed=()
     local failed=()
     
-    for project in "${projects[@]}"; do
-        if install_project "$project"; then
-            installed+=("$(basename "$project")")
-        else
-            failed+=("$(basename "$project")")
-        fi
+    if [[ ${#projects[@]} -eq 0 ]]; then
+        echo -e "${YELLOW}No c2rust-* projects found in ${SCRIPT_DIR}${NC}"
+        echo "Expected to find directories starting with 'c2rust-' containing Cargo.toml files"
         echo ""
-    done
+    else
+        echo -e "${GREEN}Found ${#projects[@]} project(s):${NC}"
+        for project in "${projects[@]}"; do
+            echo "  - $(basename "$project")"
+        done
+        echo ""
+        
+        # Install each project
+        for project in "${projects[@]}"; do
+            if install_project "$project"; then
+                installed+=("$(basename "$project")")
+            else
+                failed+=("$(basename "$project")")
+            fi
+            echo ""
+        done
+    fi
+    
+    # Install additional components
+    local -a ADDITIONAL_SUCCEEDED=()
+    local -a ADDITIONAL_FAILED=()
+    install_additional_components || true  # Don't exit on failure, we handle it in summary
     
     # Summary
     echo "=========================================="
@@ -191,7 +408,7 @@ main() {
     echo "=========================================="
     
     if [[ ${#installed[@]} -gt 0 ]]; then
-        echo -e "${GREEN}Successfully installed (${#installed[@]}):${NC}"
+        echo -e "${GREEN}Successfully installed Rust projects (${#installed[@]}):${NC}"
         for project in "${installed[@]}"; do
             echo -e "  ${GREEN}✓${NC} $project"
         done
@@ -199,10 +416,28 @@ main() {
     
     if [[ ${#failed[@]} -gt 0 ]]; then
         echo ""
-        echo -e "${RED}Failed to install (${#failed[@]}):${NC}"
+        echo -e "${RED}Failed to install Rust projects (${#failed[@]}):${NC}"
         for project in "${failed[@]}"; do
             echo -e "  ${RED}✗${NC} $project"
         done
+    fi
+    
+    # Show additional components summary
+    if [[ ${#ADDITIONAL_SUCCEEDED[@]} -gt 0 || ${#ADDITIONAL_FAILED[@]} -gt 0 ]]; then
+        echo ""
+        echo "Additional Components:"
+        
+        if [[ ${#ADDITIONAL_SUCCEEDED[@]} -gt 0 ]]; then
+            for component in "${ADDITIONAL_SUCCEEDED[@]}"; do
+                echo -e "  ${GREEN}✓${NC} $component"
+            done
+        fi
+        
+        if [[ ${#ADDITIONAL_FAILED[@]} -gt 0 ]]; then
+            for component in "${ADDITIONAL_FAILED[@]}"; do
+                echo -e "  ${RED}✗${NC} $component"
+            done
+        fi
     fi
     
     echo ""
@@ -217,7 +452,7 @@ main() {
     fi
     
     # Exit with error if any installations failed
-    if [[ ${#failed[@]} -gt 0 ]]; then
+    if [[ ${#failed[@]} -gt 0 || ${#ADDITIONAL_FAILED[@]} -gt 0 ]]; then
         exit 1
     fi
     
