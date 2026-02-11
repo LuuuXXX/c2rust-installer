@@ -43,7 +43,7 @@ DESCRIPTION:
     The binaries will be installed to <prefix>/bin
 
     Additionally, the script will process and install the following components
-    if they are present in the script directory:
+    if their respective directories are present in the script directory:
     
     - c2rust-build-master: Builds and installs libhook.so to <prefix>/lib
     - hybrid-build: Builds and installs libc2rust-hybrid-build.so to <prefix>/lib
@@ -151,7 +151,6 @@ ensure_directories() {
     echo "Setting up directory structure..."
     
     local dirs_created=()
-    local dirs_existed=()
     
     # Create all required directories
     for dir in "bin" "lib" "python"; do
@@ -164,8 +163,6 @@ ensure_directories() {
                 echo -e "${RED}Error: Failed to create ${dir} directory${NC}" >&2
                 return 1
             fi
-        else
-            dirs_existed+=("$dir")
         fi
     done
     
@@ -200,7 +197,7 @@ install_c2rust_build_master() {
     echo "Building hook library..."
     
     # Navigate to hook directory and run build.sh
-    if ! (cd "$hook_dir" && ./build.sh); then
+    if ! (cd "$hook_dir" && bash ./build.sh); then
         echo -e "${RED}Error: Failed to build hook library${NC}" >&2
         return 1
     fi
@@ -264,6 +261,12 @@ install_translate_and_fix() {
     fi
     
     echo "Processing translate_and_fix..."
+    
+    # Remove existing directory if present to ensure idempotent behavior
+    local dest_dir="${PREFIX}/python/translate_and_fix"
+    if [[ -d "$dest_dir" ]]; then
+        rm -rf "$dest_dir"
+    fi
     
     # Copy the entire directory to PREFIX/python/
     if cp -r "$translate_dir" "${PREFIX}/python/"; then
@@ -390,10 +393,9 @@ main() {
     fi
     
     # Install additional components
-    # Note: Arrays are populated via global variables (ADDITIONAL_SUCCEEDED, ADDITIONAL_FAILED)
-    # because Bash functions cannot return arrays directly
-    local -a ADDITIONAL_SUCCEEDED=()
-    local -a ADDITIONAL_FAILED=()
+    # Note: Arrays are populated via global variables (see install_additional_components)
+    ADDITIONAL_SUCCEEDED=()
+    ADDITIONAL_FAILED=()
     # Using '|| true' to prevent early exit due to 'set -e', allowing summary to be displayed
     install_additional_components || true
     
@@ -436,7 +438,16 @@ main() {
     fi
     
     echo ""
-    echo "Installation path: ${PREFIX}/bin"
+    echo "Installation prefix: ${PREFIX}"
+    if [[ -d "${PREFIX}/bin" ]]; then
+        echo "  Binaries:        ${PREFIX}/bin"
+    fi
+    if [[ -d "${PREFIX}/lib" ]]; then
+        echo "  Libraries:       ${PREFIX}/lib"
+    fi
+    if [[ -d "${PREFIX}/python" ]]; then
+        echo "  Python packages: ${PREFIX}/python"
+    fi
     
     # Check if PREFIX/bin is in PATH
     if [[ ":$PATH:" != *":${PREFIX}/bin:"* ]]; then
