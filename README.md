@@ -4,7 +4,7 @@ An automated installation script for c2rust-related Rust projects.
 
 ## Overview
 
-This repository provides an `install.sh` script that automatically discovers and installs all Rust projects in the repository that are prefixed with `c2rust-`.
+This repository provides an `install.sh` script that automatically discovers and installs all Rust projects in the script directory that are prefixed with `c2rust-`.
 
 ## Prerequisites
 
@@ -56,7 +56,7 @@ Display usage information:
 
 The script:
 
-1. Searches the current directory for all subdirectories matching `c2rust-*`
+1. Searches the directory containing the installer script for all subdirectories matching `c2rust-*`
 2. Validates that each directory contains a `Cargo.toml` file
 3. Installs each project using `cargo install --path . --root <prefix>`
 4. Reports installation success/failure for each project

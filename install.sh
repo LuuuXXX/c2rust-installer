@@ -19,7 +19,7 @@ show_help() {
     cat << EOF
 Usage: ${0} [OPTIONS]
 
-Install all c2rust-* Rust projects from the current directory.
+Install all c2rust-* Rust projects from the script directory.
 
 OPTIONS:
     --prefix=PATH       Specify installation prefix (default: ${DEFAULT_PREFIX})
@@ -37,7 +37,7 @@ EXAMPLES:
 
 DESCRIPTION:
     This script automatically discovers and installs all Rust projects in the
-    current directory that start with 'c2rust-'. Each project must contain a
+    script directory that start with 'c2rust-'. Each project must contain a
     valid Cargo.toml file.
 
     The binaries will be installed to <prefix>/bin
@@ -103,6 +103,8 @@ find_projects() {
     if [[ ${#projects[@]} -gt 0 ]]; then
         printf '%s\n' "${projects[@]}"
     fi
+    
+    return 0
 }
 
 # Install a single project
@@ -113,14 +115,14 @@ install_project() {
     
     echo -e "${BLUE}Installing ${project_name}...${NC}"
     
-    # Try with --locked first, suppress error output if it fails
-    if cargo install --path "$project_path" --root "$PREFIX" --locked 2>&1; then
+    # Try with --locked first, suppress output if it fails
+    if cargo install --path "$project_path" --root "$PREFIX" --locked >/dev/null 2>&1; then
         echo -e "${GREEN}✓ Successfully installed ${project_name}${NC}"
         return 0
     fi
     
-    # Fallback: try without --locked
-    if cargo install --path "$project_path" --root "$PREFIX" 2>&1; then
+    # Fallback: try without --locked, showing output
+    if cargo install --path "$project_path" --root "$PREFIX"; then
         echo -e "${GREEN}✓ Successfully installed ${project_name}${NC}"
         return 0
     fi
@@ -150,7 +152,10 @@ main() {
     
     # Find all c2rust-* projects
     echo "Searching for c2rust-* projects..."
-    mapfile -t projects < <(find_projects)
+    projects=()
+    while IFS= read -r project; do
+        projects+=("$project")
+    done < <(find_projects)
     
     if [[ ${#projects[@]} -eq 0 ]]; then
         echo -e "${YELLOW}No c2rust-* projects found in ${SCRIPT_DIR}${NC}"
