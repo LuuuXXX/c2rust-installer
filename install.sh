@@ -108,20 +108,25 @@ find_projects() {
 # Install a single project
 install_project() {
     local project_path="$1"
-    local project_name=$(basename "$project_path")
+    local project_name
+    project_name="$(basename "$project_path")"
     
     echo -e "${BLUE}Installing ${project_name}...${NC}"
     
-    if ! cargo install --path "$project_path" --root "$PREFIX" --locked 2>&1; then
-        # Try without --locked if it fails
-        if ! cargo install --path "$project_path" --root "$PREFIX" 2>&1; then
-            echo -e "${RED}Error: Failed to install ${project_name}${NC}" >&2
-            return 1
-        fi
+    # Try with --locked first, suppress error output if it fails
+    if cargo install --path "$project_path" --root "$PREFIX" --locked 2>&1; then
+        echo -e "${GREEN}✓ Successfully installed ${project_name}${NC}"
+        return 0
     fi
     
-    echo -e "${GREEN}✓ Successfully installed ${project_name}${NC}"
-    return 0
+    # Fallback: try without --locked
+    if cargo install --path "$project_path" --root "$PREFIX" 2>&1; then
+        echo -e "${GREEN}✓ Successfully installed ${project_name}${NC}"
+        return 0
+    fi
+    
+    echo -e "${RED}Error: Failed to install ${project_name}${NC}" >&2
+    return 1
 }
 
 # Main installation function
