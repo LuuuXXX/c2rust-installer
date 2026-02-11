@@ -3,8 +3,9 @@
 set -e
 
 # Default installation prefix
-DEFAULT_PREFIX="${HOME}/.local"
+DEFAULT_PREFIX="${HOME}/.c2rust"
 PREFIX=""
+CUSTOM_PREFIX_USED=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Color codes for output
@@ -93,6 +94,11 @@ parse_args() {
     # Use default prefix if not specified
     if [[ -z "$PREFIX" ]]; then
         PREFIX="$DEFAULT_PREFIX"
+    fi
+    
+    # Set CUSTOM_PREFIX_USED only if the prefix differs from default
+    if [[ "$PREFIX" != "$DEFAULT_PREFIX" ]]; then
+        CUSTOM_PREFIX_USED=true
     fi
 }
 
@@ -449,21 +455,44 @@ main() {
         echo "  Python packages: ${PREFIX}/python"
     fi
     
-    # Check if PREFIX/bin is in PATH
-    if [[ ":$PATH:" != *":${PREFIX}/bin:"* ]]; then
-        echo ""
-        echo -e "${YELLOW}Note: ${PREFIX}/bin is not in your PATH${NC}"
-        echo "Add the following line to your shell configuration file:"
-        echo "  export PATH=\"${PREFIX}/bin:\$PATH\""
-    fi
-    
     # Exit with error if any installations failed
     if [[ ${#failed[@]} -gt 0 || ${#ADDITIONAL_FAILED[@]} -gt 0 ]]; then
         exit 1
     fi
     
+    # Check if PREFIX/bin is in PATH
+    if [[ ":$PATH:" != *":${PREFIX}/bin:"* ]]; then
+        echo ""
+        echo -e "${YELLOW}注意：${PREFIX}/bin 不在您的 PATH 中${NC}"
+        echo "请将以下内容添加到您的 shell 配置文件中："
+        echo "  export PATH=\"${PREFIX}/bin:\$PATH\""
+    fi
+    
+    # Show environment variable reminder for custom prefix
+    if [[ "$CUSTOM_PREFIX_USED" == "true" ]]; then
+        echo ""
+        echo -e "${YELLOW}=========================================="
+        echo "环境变量配置"
+        echo -e "==========================================${NC}"
+        echo ""
+        echo -e "请设置 ${GREEN}C2RUST_HOME${NC} 环境变量为您的安装前缀："
+        echo ""
+        echo -e "  ${GREEN}export C2RUST_HOME=\"${PREFIX}\"${NC}"
+        echo ""
+        echo "将其添加到您的 shell 配置文件以使其永久生效："
+        echo ""
+        echo "  Bash 用户 (~/.bashrc)："
+        echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.bashrc${NC}"
+        echo -e "    ${BLUE}source ~/.bashrc${NC}"
+        echo ""
+        echo "  Zsh 用户 (~/.zshrc)："
+        echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.zshrc${NC}"
+        echo -e "    ${BLUE}source ~/.zshrc${NC}"
+        echo ""
+    fi
+    
     echo ""
-    echo -e "${GREEN}All installations completed successfully!${NC}"
+    echo -e "${GREEN}所有安装已成功完成！${NC}"
 }
 
 # Run main function with all arguments

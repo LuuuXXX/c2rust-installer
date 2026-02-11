@@ -15,7 +15,7 @@ c2rust 相关 Rust 项目的自动化安装脚本。
 
 ### 基本安装
 
-使用默认前缀 (`$HOME/.local`) 安装所有 c2rust 项目：
+使用默认前缀 (`$HOME/.c2rust`) 安装所有 c2rust 项目：
 
 ```bash
 ./install.sh
@@ -65,13 +65,13 @@ c2rust 相关 Rust 项目的自动化安装脚本。
 ## 安装路径
 
 默认情况下，二进制文件将安装到：
-- `$HOME/.local/bin`（默认前缀）
+- `$HOME/.c2rust/bin`（默认前缀）
 - `<prefix>/bin`（自定义前缀）
 
 请确保将安装目录添加到您的 PATH：
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.c2rust/bin:$PATH"
 ```
 
 ## 示例输出
@@ -81,7 +81,7 @@ export PATH="$HOME/.local/bin:$PATH"
 c2rust Projects Installer
 ==========================================
 
-Installation prefix: /home/user/.local
+Installation prefix: /home/user/.c2rust
 Script directory: /path/to/c2rust-installer
 
 Searching for c2rust-* projects...
@@ -102,9 +102,10 @@ Successfully installed (2):
   ✓ c2rust-tool1
   ✓ c2rust-tool2
 
-Installation path: /home/user/.local/bin
+Installation prefix: /home/user/.c2rust
+  Binaries:        /home/user/.c2rust/bin
 
-All installations completed successfully!
+所有安装已成功完成！
 ```
 
 ## 故障排除
