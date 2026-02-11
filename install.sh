@@ -460,39 +460,24 @@ main() {
         exit 1
     fi
     
-    # Check if PREFIX/bin is in PATH
-    if [[ ":$PATH:" != *":${PREFIX}/bin:"* ]]; then
-        echo ""
-        echo -e "${YELLOW}注意：${PREFIX}/bin 不在您的 PATH 中${NC}"
-        echo "请将以下内容添加到您的 shell 配置文件中："
-        echo "  export PATH=\"${PREFIX}/bin:\$PATH\""
-    fi
-    
-    # Show environment variable reminder for custom prefix
-    if [[ "$CUSTOM_PREFIX_USED" == "true" ]]; then
-        echo ""
-        echo -e "${YELLOW}=========================================="
-        echo "环境变量配置"
-        echo -e "==========================================${NC}"
-        echo ""
-        echo -e "请设置 ${GREEN}C2RUST_HOME${NC} 环境变量为您的安装前缀："
-        echo ""
-        echo -e "  ${GREEN}export C2RUST_HOME=\"${PREFIX}\"${NC}"
-        echo ""
-        echo "将其添加到您的 shell 配置文件以使其永久生效："
-        echo ""
-        echo "  Bash 用户 (~/.bashrc)："
-        echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.bashrc${NC}"
-        echo -e "    ${BLUE}source ~/.bashrc${NC}"
-        echo ""
-        echo "  Zsh 用户 (~/.zshrc)："
-        echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.zshrc${NC}"
-        echo -e "    ${BLUE}source ~/.zshrc${NC}"
-        echo ""
-    fi
-    
+    # Show environment variable configuration instructions
     echo ""
-    echo -e "${GREEN}所有安装已成功完成！${NC}"
+    echo "=========================================="
+    echo "安装成功！"
+    echo "=========================================="
+    echo ""
+    echo -e "请设置环境变量 ${GREEN}C2RUST_HOME${NC} 指向您的安装目录："
+    echo ""
+    echo -e "对于 ${BLUE}bash${NC}，添加以下行到 ${BLUE}~/.bashrc${NC}："
+    echo -e "    ${GREEN}export C2RUST_HOME=\"${PREFIX}\"${NC}"
+    echo -e "    ${GREEN}export PATH=\$C2RUST_HOME/bin:\$PATH${NC}"
+    echo ""
+    echo -e "对于 ${BLUE}zsh${NC}，添加以下行到 ${BLUE}~/.zshrc${NC}："
+    echo -e "    ${GREEN}export C2RUST_HOME=\"${PREFIX}\"${NC}"
+    echo -e "    ${GREEN}export PATH=\$C2RUST_HOME/bin:\$PATH${NC}"
+    echo ""
+    echo -e "然后运行: ${BLUE}source ~/.bashrc${NC} (或 ${BLUE}source ~/.zshrc${NC})"
+    echo "=========================================="
 }
 
 # Run main function with all arguments
