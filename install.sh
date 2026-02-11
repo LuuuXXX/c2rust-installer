@@ -3,8 +3,9 @@
 set -e
 
 # Default installation prefix
-DEFAULT_PREFIX="${HOME}/.local"
+DEFAULT_PREFIX="${HOME}/.c2rust"
 PREFIX=""
+CUSTOM_PREFIX_USED=false
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Color codes for output
@@ -67,11 +68,13 @@ parse_args() {
                     echo -e "${RED}Error: --prefix= requires a non-empty path argument${NC}" >&2
                     exit 1
                 fi
+                CUSTOM_PREFIX_USED=true
                 shift
                 ;;
             --prefix)
                 if [[ -n "$2" ]] && [[ "$2" != --* ]]; then
                     PREFIX="$2"
+                    CUSTOM_PREFIX_USED=true
                     shift 2
                 else
                     echo -e "${RED}Error: --prefix requires a path argument${NC}" >&2
@@ -455,6 +458,29 @@ main() {
         echo -e "${YELLOW}Note: ${PREFIX}/bin is not in your PATH${NC}"
         echo "Add the following line to your shell configuration file:"
         echo "  export PATH=\"${PREFIX}/bin:\$PATH\""
+    fi
+    
+    # Show environment variable reminder for custom prefix
+    if [[ "$CUSTOM_PREFIX_USED" == "true" ]]; then
+        echo ""
+        echo -e "${YELLOW}=========================================="
+        echo "Environment Variable Configuration"
+        echo -e "==========================================${NC}"
+        echo ""
+        echo -e "Please set the ${GREEN}C2RUST_HOME${NC} environment variable to your installation prefix:"
+        echo ""
+        echo -e "  ${GREEN}export C2RUST_HOME=\"${PREFIX}\"${NC}"
+        echo ""
+        echo "Add this to your shell configuration file to make it permanent:"
+        echo ""
+        echo "  For Bash users (~/.bashrc):"
+        echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.bashrc${NC}"
+        echo -e "    ${BLUE}source ~/.bashrc${NC}"
+        echo ""
+        echo "  For Zsh users (~/.zshrc):"
+        echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.zshrc${NC}"
+        echo -e "    ${BLUE}source ~/.zshrc${NC}"
+        echo ""
     fi
     
     # Exit with error if any installations failed
