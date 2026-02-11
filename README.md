@@ -102,7 +102,8 @@ Successfully installed (2):
   ✓ c2rust-tool1
   ✓ c2rust-tool2
 
-Installation path: /home/user/.c2rust/bin
+Installation prefix: /home/user/.c2rust
+  Binaries:        /home/user/.c2rust/bin
 
 All installations completed successfully!
 ```

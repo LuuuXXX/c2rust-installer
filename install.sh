@@ -452,6 +452,11 @@ main() {
         echo "  Python packages: ${PREFIX}/python"
     fi
     
+    # Exit with error if any installations failed
+    if [[ ${#failed[@]} -gt 0 || ${#ADDITIONAL_FAILED[@]} -gt 0 ]]; then
+        exit 1
+    fi
+    
     # Check if PREFIX/bin is in PATH
     if [[ ":$PATH:" != *":${PREFIX}/bin:"* ]]; then
         echo ""
@@ -481,11 +486,6 @@ main() {
         echo -e "    ${BLUE}echo 'export C2RUST_HOME=\"${PREFIX}\"' >> ~/.zshrc${NC}"
         echo -e "    ${BLUE}source ~/.zshrc${NC}"
         echo ""
-    fi
-    
-    # Exit with error if any installations failed
-    if [[ ${#failed[@]} -gt 0 || ${#ADDITIONAL_FAILED[@]} -gt 0 ]]; then
-        exit 1
     fi
     
     echo ""
