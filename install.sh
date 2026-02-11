@@ -103,7 +103,6 @@ find_projects() {
     if [[ ${#projects[@]} -gt 0 ]]; then
         printf '%s\n' "${projects[@]}"
     fi
-    
     return 0
 }
 
