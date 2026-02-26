@@ -284,6 +284,32 @@ install_translate_and_fix() {
     fi
 }
 
+# Handle conf directory
+install_conf() {
+    local conf_dir="${SCRIPT_DIR}/conf"
+    
+    if [[ ! -d "$conf_dir" ]]; then
+        return 0  # Not an error, just not present
+    fi
+    
+    echo "Processing conf..."
+    
+    # Remove existing directory if present to ensure idempotent behavior
+    local dest_dir="${PREFIX}/conf"
+    if [[ -d "$dest_dir" ]]; then
+        rm -rf "$dest_dir"
+    fi
+    
+    # Copy the entire directory
+    if cp -r "$conf_dir" "${PREFIX}/"; then
+        echo -e "${GREEN}✓ Successfully copied conf directory${NC}"
+        return 0
+    else
+        echo -e "${RED}Error: Failed to copy conf directory${NC}" >&2
+        return 1
+    fi
+}
+
 # Install additional components
 install_additional_components() {
     local additional_succeeded=()
@@ -329,6 +355,16 @@ install_additional_components() {
             additional_succeeded+=("translate_and_fix")
         else
             additional_failed+=("translate_and_fix")
+        fi
+        echo ""
+    fi
+    
+    # Install conf if present
+    if [[ -d "${SCRIPT_DIR}/conf" ]]; then
+        if install_conf; then
+            additional_succeeded+=("conf")
+        else
+            additional_failed+=("conf")
         fi
         echo ""
     fi
